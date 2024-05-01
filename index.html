@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+
+    <title>Dot density | Sample | ArcGIS Maps SDK for JavaScript 4.29</title>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/dark/main.css" />
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+
+    <script src="https://js.arcgis.com/4.29/"></script>
+
+    <script>
+      require([
+        "esri/WebMap",
+        "esri/views/MapView",
+        "esri/layers/FeatureLayer",
+        "esri/renderers/DotDensityRenderer",
+        "esri/widgets/Legend",
+        "esri/widgets/Bookmarks",
+        "esri/widgets/Expand"
+      ], (WebMap, MapView, FeatureLayer, DotDensityRenderer, Legend, Bookmarks, Expand) => {
+        const map = new WebMap({
+          portalItem: {
+            id: "56b5bd522c52409c90d902285732e9f1"
+          }
+        });
+
+        const view = new MapView({
+          container: "viewDiv",
+          map: map,
+          center: [-76.2179, 43.2994],
+          zoom: 5 ,
+          highlightOptions: {
+            fillOpacity: 0,
+            color: [50, 50, 50]
+          },
+          popup: {
+            dockEnabled: true,
+            dockOptions: {
+              position: "top-right",
+              breakpoint: false
+            }
+          },
+          constraints: {
+            maxScale: 35000
+          }
+        });
+
+        view.when().then(() => {
+          const dotDensityRenderer = new DotDensityRenderer({
+            dotValue: 1,
+            outline: null,
+            referenceScale: 577790000,  // 1:577,790 view scale
+            legendOptions: {
+              unit: "college"
+            },
+            attributes: [
+              {
+                field: "FID",
+                color: "#f23c3f",
+                label: "Colleges and Universities"
+              }
+              
+            ]
+          });
+
+          // Add renderer to the layer and define a popup template
+          const url =
+            "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/Colleges_and_University_Campuses/FeatureServer/0";
+          const layer = new FeatureLayer({
+            url: url,
+            minScale: 200000000000,
+            maxScale: 1 , 
+            title: "Colleges in the Northeasten United States",
+            popupTemplate: {
+              title: "{NAME}",
+              content: [
+              {
+                  type: "media",
+                  mediaInfos: [
+                    {
+                      title: "Colleges in the Northeasten United States",
+                      value: {
+                        fields: [
+                          "CITY",
+                          "POPULATION",
+                          "NAICS_DESC"
+                          
+                        ],
+                        tooltipField: "<field name>"
+                      }
+                    }
+                  ]
+                },
+                {
+                  type: "fields",
+                }
+              ],
+              fieldInfos: [
+                {
+                  fieldName: "CITY",
+                  label: "City",
+                  format: {
+                    digitSeparator: true,
+                    places: 0,
+                  },
+                },
+                {
+                  fieldName: "POPULATION",
+                  label: "Population",
+                  format: {
+                    digitSeparator: true,
+                    places: 0,
+                  },
+                },
+                {
+                  fieldName: "NAICS_DESC",
+                  label: "College Type",
+                  format: {
+                    digitSeparator: true,
+                    places: 0,
+                  },
+                },
+                
+              ]
+            },
+            renderer: dotDensityRenderer
+          });
+
+          map.add(layer);
+
+          view.ui.add(
+            [
+              new Expand({
+                view: view,
+                content: new Legend({ view: view }),
+                group: "top-left",
+                expanded: true
+              }),
+              new Expand({
+                view: view,
+                content: new Bookmarks({ view: view }),
+                group: "top-left"
+              })
+            ],
+            "top-left"
+          );
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>
